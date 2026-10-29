@@ -223,3 +223,6 @@ __marimo__/
 db.sqlite3
 db.sqlite3-journal
 staticfiles/
+.env
+*.sqlite3
+staticfiles/

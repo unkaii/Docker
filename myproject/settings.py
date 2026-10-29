@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/6.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
-
+import os
 from pathlib import Path
 from django.contrib.messages import constants as messages
 
@@ -21,13 +21,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-j@rqjgo9+yy80hpvje##yk(c!96z!y+s!sdfv57$%v=0h3x0m-'
+# Берем ключ из переменной окружения. 
+# Если её нет, используем ваш старый ключ как запасной (чтобы проект работал локально).
+SECRET_KEY = os.environ.get(
+    'DJANGO_SECRET_KEY', 
+    'django-insecure-j@rqjgo9+yy80hpvje##yk(c!96z!y+s!sdfv57$%v=0h3x0m-'
+)
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Берем режим отладки из окружения. По умолчанию True.
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['django-3.de1.netrun.io']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -44,6 +48,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -77,10 +82,16 @@ WSGI_APPLICATION = 'myproject.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('POSTGRES_DB', 'grades_db'),
+        'USER': os.environ.get('POSTGRES_USER', 'grades_user'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'grades_pass'),
+        'HOST': os.environ.get('POSTGRES_HOST', 'db'),
+        'PORT': os.environ.get('POSTGRES_PORT', '5432'),
     }
+ 
 }
+
 
 
 # Password validation
@@ -129,11 +140,16 @@ MAILERS = {
     },
 }
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+
 MESSAGE_TAGS = {
     messages.ERROR: 'danger',
 }
+
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 TEMPLATES[0]['DIRS'] = [BASE_DIR / 'templates']
+
 CSRF_TRUSTED_ORIGINS = [
     'https://django-3.de1.netrun.io',
 ]
